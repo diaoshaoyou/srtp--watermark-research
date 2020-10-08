@@ -1,3 +1,4 @@
+#在main中调用顺序：2
 import numpy as np
 import cv2
 import os
@@ -31,7 +32,7 @@ def get_cropped_images(foldername, num_images, start, end, shape):
                 image_paths.append(os.sep.join([r, file]))
                 _img = _img[_s[0]:(_s[0]+_e[0]), _s[1]:(_s[1]+_e[1]), :]
                 # add to list images
-                images_cropped[index, :, :, :] = _img
+                images_cropped[index, :, :, :] = _img#往输出结果中新增img
                 index+=1
             else:
                 print("%s not found."%(file))

@@ -1,3 +1,4 @@
+#closed_form_matte函数在watermark_reconstruct中被调用，computeLaplacian在closed_form_matte中被调用
 from __future__ import division
 
 import numpy as np
