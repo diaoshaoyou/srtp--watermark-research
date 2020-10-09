@@ -9,11 +9,11 @@ from estimate_watermark import *
 from closed_form_matting import *
 from numpy import nan, isnan
 
-def get_cropped_images(foldername, num_images, start, end, shape):
+def get_cropped_images(foldername, num_images, start, end, shape):#start是水印左上角坐标，end是水印右下角坐标，shape是水印矩阵大小
     '''
     This is the part where we get all the images, extract their parts, and then add it to our matrix
     '''
-    images_cropped = np.zeros((num_images,) + shape)
+    images_cropped = np.zeros((num_images,) + shape)#四维矩阵
     # get images
     # Store all the watermarked images
     # start, and end are already stored
@@ -112,18 +112,19 @@ def get_xSobel_matrix(m, n, p):
 
 # get estimated normalized alpha matte
 def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False, adaptive=False, adaptive_threshold=21, c2=10):
-    _Wm = (255*PlotImage(np.average(W_m, axis=2))).astype(np.uint8)
+    _Wm = (255*PlotImage(np.average(W_m, axis=2))).astype(np.uint8)#_Wm是单通道水印大小的矩阵
     if adaptive:
         thr = cv2.adaptiveThreshold(_Wm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, adaptive_threshold, c2)
     else:
-        ret, thr = cv2.threshold(_Wm, threshold, 255, cv2.THRESH_BINARY)
+        ret, thr = cv2.threshold(_Wm, threshold, 255, cv2.THRESH_BINARY)#图像阈值处理，此处把_Wm图像变成二值图thr
+        #cv2.threshold(src, thresh, maxval, type[, dst]) → retval, dst。src是原图，thresh是阈值，maxval是结果图可以赋的最大值，type是阈值处理的类型。此处THRESH_BINARY：若像素值超过阈值，则赋maxval；若低于阈值，则赋0。dst是结果图
 
     if invert:
         thr = 255-thr
     thr = np.stack([thr, thr, thr], axis=2)
 
     num, m, n, p = J.shape
-    alpha = np.zeros((num_images, m, n))
+    alpha = np.zeros((num_images, m, n))#有点特殊的三维矩阵，一列x深度那个平面的二维矩阵是一张图的alpha
     iterpatch = 900
 
     print("Estimating normalized alpha using %d images."%(num_images))
@@ -133,7 +134,7 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
         alph = closed_form_matte(J[idx], imgcopy)
         alpha[idx] = alph
 
-    alpha = np.median(alpha, axis=0)
+    alpha = np.median(alpha, axis=0)#计算每行中位数（相当于计算所有图alpha的中位数），转变成二维矩阵
     return alpha
 
 def estimate_blend_factor(J, W_m, alph, threshold=0.01*255):
@@ -143,19 +144,19 @@ def estimate_blend_factor(J, W_m, alph, threshold=0.01*255):
     gy_jm = np.zeros(J.shape)
 
     for i in xrange(K):
-        gx_jm[i] = cv2.Sobel(Jm[i], cv2.CV_64F, 1, 0, 3)
-        gy_jm[i] = cv2.Sobel(Jm[i], cv2.CV_64F, 0, 1, 3)
+        gx_jm[i] = cv2.Sobel(Jm[i], cv2.CV_64F, 1, 0, 3)#X轴方向sobel边缘检测
+        gy_jm[i] = cv2.Sobel(Jm[i], cv2.CV_64F, 0, 1, 3)#Y轴方向sobel边缘检测
 
-    Jm_grad = np.sqrt(gx_jm**2 + gy_jm**2)
+    Jm_grad = np.sqrt(gx_jm**2 + gy_jm**2)#梯度
 
-    est_Ik = alph*np.median(J, axis=0)
+    est_Ik = alph*np.median(J, axis=0)#a_n*所有水印图中位数
     gx_estIk = cv2.Sobel(est_Ik, cv2.CV_64F, 1, 0, 3)
     gy_estIk = cv2.Sobel(est_Ik, cv2.CV_64F, 0, 1, 3)
     estIk_grad = np.sqrt(gx_estIk**2 + gy_estIk**2)
 
     C = []
     for i in xrange(3):
-        c_i = np.sum(Jm_grad[:,:,:,i]*estIk_grad[:,:,i])/np.sum(np.square(estIk_grad[:,:,i]))/K
+        c_i = np.sum(Jm_grad[:,:,:,i]*estIk_grad[:,:,i])/np.sum(np.square(estIk_grad[:,:,i]))/K#？？？
         print(c_i)
         C.append(c_i)
 
