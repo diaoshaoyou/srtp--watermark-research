@@ -119,9 +119,9 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
         ret, thr = cv2.threshold(_Wm, threshold, 255, cv2.THRESH_BINARY)#图像阈值处理，此处把_Wm图像变成二值图thr
         #cv2.threshold(src, thresh, maxval, type[, dst]) → retval, dst。src是原图，thresh是阈值，maxval是结果图可以赋的最大值，type是阈值处理的类型。此处THRESH_BINARY：若像素值超过阈值，则赋maxval；若低于阈值，则赋0。dst是结果图
 
-    if invert:
+    if invert:#黑白反一下
         thr = 255-thr
-    thr = np.stack([thr, thr, thr], axis=2)
+    thr = np.stack([thr, thr, thr], axis=2)#相当于把原thr变成了三通道，但三通道像素颜色一样(黑/白)
 
     num, m, n, p = J.shape
     alpha = np.zeros((num_images, m, n))#有点特殊的三维矩阵，一列x深度那个平面的二维矩阵是一张图的alpha
@@ -204,8 +204,8 @@ def solve_images(J, W_m, alpha, W_init, gamma=1, beta=1, lambda_w=0.005, lambda_
         Wm_gx = cv2.Sobel(W_m, cv2.CV_64F, 1, 0, 3)
         Wm_gy = cv2.Sobel(W_m, cv2.CV_64F, 0, 1, 3)
 
-        cx = diags(np.abs(alpha_gx).reshape(-1))
-        cy = diags(np.abs(alpha_gy).reshape(-1))
+        cx = diags(np.abs(alpha_gx).reshape(-1))#reshape(-1)：把矩阵变成一行数组。此处以该数组为对角线创建矩阵(非对角线=0)
+        cy = diags(np.abs(alpha_gy).reshape(-1))#diags(v,k)：v是n个元素的向量，创建n+k阶矩阵，v是第k个对角线上。主对角线是第0个，上方为正，下方为负
 
         alpha_diag = diags(alpha.reshape(-1))
         alpha_bar_diag = diags((1-alpha).reshape(-1))

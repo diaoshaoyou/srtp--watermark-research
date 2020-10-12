@@ -1,14 +1,20 @@
+#1.算出所有图的梯度中位数
+#2.用中位数裁剪出极其粗糙的水印图
+#3.对裁剪出的水印拉普拉斯算子边缘检测，得到较粗糙的水印图和位置
+#4.用较粗糙的水印图位置对某张图片的水印位置进行检测
+#5.把所有图都粗糙地裁剪水印
+#……
 from src import *
 
 gx, gy, gxlist, gylist = estimate_watermark('images/fotolia_processed')#gx、gy是梯度中位数，gxlist、gylist是J梯度
 
 # est = poisson_reconstruct(gx, gy, np.zeros(gx.shape)[:,:,0])
-cropped_gx, cropped_gy = crop_watermark(gx, gy)#裁剪水印，cropped_gx、cropped_gy是水印(包括边框)所在的区域范围
+cropped_gx, cropped_gy = crop_watermark(gx, gy)#裁剪出极其粗糙的水印，cropped_gx、cropped_gy是水印(包括边框)所在的区域范围
 W_m = poisson_reconstruct(cropped_gx, cropped_gy)#泊松重建，对裁剪后的水印进行sobel边缘检测
 
 # random photo
 img = cv2.imread('images/fotolia_processed/fotolia_137840645.jpg')
-im, start, end = watermark_detector(img, cropped_gx, cropped_gy)#找到水印位置，start是水印外框矩形的左上角顶点，end是右下角顶点
+im, start, end = watermark_detector(img, cropped_gx, cropped_gy)#找到水印位置，start是水印外框矩形的左上角顶点，end是长和宽
 
 # plt.imshow(im)
 # plt.show()

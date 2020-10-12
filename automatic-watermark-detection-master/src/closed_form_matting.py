@@ -50,12 +50,13 @@ def closed_form_matte(img, scribbled_img, mylambda=100):
     #scribbled_img = rgb2gray(scribbled_img)
 
     consts_vals = scribbled_img[:,:,0]*consts_map
-    D_s = consts_map.ravel()
+    D_s = consts_map.ravel()#ravel()把多维数组转换成一维数组
     b_s = consts_vals.ravel()
     # print("Computing Matting Laplacian")
     L = computeLaplacian(img)
-    sD_s = scipy.sparse.diags(D_s)
+    sD_s = scipy.sparse.diags(D_s)#scipy.sparse.diags(diagonals, offsets=0, shape=None, format=None, dtype=None)从对角线构造一个稀疏矩阵
     # print("Solving for alpha")
-    x = scipy.sparse.linalg.spsolve(L + mylambda*sD_s, mylambda*b_s)
+    x = scipy.sparse.linalg.spsolve(L + mylambda*sD_s, mylambda*b_s)#scipy.sparse.linalg.spsolve(A, b, permc_spec=None, use_umfpack=True)求解Ax=b中的x
+
     alpha = np.minimum(np.maximum(x.reshape(h, w), 0), 1)
     return alpha

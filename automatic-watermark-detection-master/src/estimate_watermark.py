@@ -104,7 +104,7 @@ def poisson_reconstruct(gradx, grady, kernel_size=KERNEL_SIZE, num_iters=100, h=
    #cv2.Sobel(img,cv2.CV_64F, 1, 0, ksize=3),img是源图像，cv2.CV_64F是cv提供的64位float，不用numpy.float64是怕溢出。第一个数字是对X求导即检测X方向是否有边缘，第2个数字是对Y求导。ksize是核的大小(核具体没太了解)
 	fxx = cv2.Sobel(gradx, cv2.CV_64F, 1, 0, ksize=kernel_size)#检测X方向的边缘，对X求导
 	fyy = cv2.Sobel(grady, cv2.CV_64F, 0, 1, ksize=kernel_size)#检测Y方向的边缘，对Y求导
-	laplacian = fxx + fyy
+	laplacian = fxx + fyy#上述步骤相当于直接调用cv2.Laplacian计算拉普拉斯算子
 	m,n,p = laplacian.shape#laplacian矩阵的维度，几行+几列+深度
 
 	if boundary_zero == True:
@@ -114,16 +114,17 @@ def poisson_reconstruct(gradx, grady, kernel_size=KERNEL_SIZE, num_iters=100, h=
 		assert(boundary_image.shape == laplacian.shape)
 		est = boundary_image.copy()
 
-	est[1:-1, 1:-1, :] = np.random.random((m-2, n-2, p))
+	est[1:-1, 1:-1, :] = np.random.random((m-2, n-2, p))#随机赋值，相当于要从一张噪声图逐渐接近原图
 	loss = []#loss数组，存每一步差的平方累计值
 
 	for i in xrange(num_iters):
 		old_est = est.copy()
-		est[1:-1, 1:-1, :] = 0.25*(est[0:-2, 1:-1, :] + est[1:-1, 0:-2, :] + est[2:, 1:-1, :] + est[1:-1, 2:, :] - h*h*laplacian[1:-1, 1:-1, :])#神奇的计算，不知为什么这么算est的新值
-		error = np.sum(np.square(est-old_est))
+		est[1:-1, 1:-1, :] = 0.25*(est[0:-2, 1:-1, :] + est[1:-1, 0:-2, :] + est[2:, 1:-1, :] + est[1:-1, 2:, :] - h*h*laplacian[1:-1, 1:-1, :])
+     #上式在估计原值，若在九宫格中，即V[5]=0.25*(V[2]+V[4]+V[6]+V[8]-laplacian)
+		error = np.sum(np.square(est-old_est))#记录前后偏差，用于debug
 		loss.append(error)
 
-	return (est)#num_iters次计算后的值
+	return (est)#较粗糙的水印RGB图
 
 
 def image_threshold(image, threshold=0.5):#转二值图，阈值=0.5
@@ -152,7 +153,7 @@ def crop_watermark(gradx, grady, threshold=0.4, boundary_size=2):#裁剪水印
 	xm, xM = np.min(x) - boundary_size - 1, np.max(x) + boundary_size + 1#记得要多保留边框
 	ym, yM = np.min(y) - boundary_size - 1, np.max(y) + boundary_size + 1#记得要多保留边框
 
-	return gradx[xm:xM, ym:yM, :] , grady[xm:xM, ym:yM, :]#返回水印所在区域的矩阵
+	return gradx[xm:xM, ym:yM, :] , grady[xm:xM, ym:yM, :]#返回水印所在区域的矩阵，非常粗糙
 
 
 def normalized(img):
@@ -172,17 +173,17 @@ def watermark_detector(img, gx, gy, thresh_low=200, thresh_high=220, printval=Fa
 	Wm = (np.average(np.sqrt(np.square(gx) + np.square(gy)), axis=2))#average(data,direction),axis=0,每列平均;axis=1,每行平均;axis=2,纵深平均。此处求完就成了单通道的水印大小的矩阵，后续用来卷积
 
 	img_edgemap = (cv2.Canny(img, thresh_low, thresh_high))#Canny边缘检测，用2种阈值来检测出强边缘和弱边缘。只有当强弱边缘相连时才会把弱边缘包含在图像中。Canny算子最不易受噪声干扰
-	chamfer_dist = cv2.filter2D(img_edgemap.astype(float), -1, Wm)
+	chamfer_dist = cv2.filter2D(img_edgemap.astype(float), -1, Wm)#！！！这个返回的到底是什么数据类型？？？
    #void filter2D( InputArray src, OutputArray dst, int ddepth,InputArray kernel, Point anchor=Point(-1,-1), double delta=0, int borderType=BORDER_DEFAULT );    ddepth=-1表示输出图像与原图深度相同，Wm是卷积核kernel，是一个对边缘像素加权平均的函数
 
 
 	rect = Wm.shape#获得图片形状，rect[0]图高，rect[1]图宽，rect[2]通道数
-	index = np.unravel_index(np.argmax(chamfer_dist), img.shape[:-1])#chamfer距离中最大者的坐标
+	index = np.unravel_index(np.argmax(chamfer_dist), img.shape[:-1])#倒角距离中最大者的坐标，也就是水印的中心点
 	if printval:
 		print(index)
 
-	x,y = (index[0]-rect[0]/2), (index[1]-rect[1]/2)
+	x,y = (index[0]-rect[0]/2), (index[1]-rect[1]/2)#求出水印矩形左上角顶点
 	im = img.copy() 
-	cv2.rectangle(im, (y, x), (y+rect[1], x+rect[0]), (255, 0, 0))#通过对角线画矩形。
+	cv2.rectangle(im, (y, x), (y+rect[1], x+rect[0]), (255, 0, 0))#通过对角线画矩形，圈出水印所在
    #rectangle(img,pt1,pt2,color,thisckness,lineType,shift),pt1是一个左上角顶点，pt2是右下角顶点(Y轴正方向垂直向下，X轴水平向右),color顺序是BGR，thickness表示矩形边框厚度：负数表示全填充。
-	return (im, (x, y), (rect[0], rect[1]))
+	return (im, (x, y), (rect[0], rect[1]))#返回水印图，水印左上角顶点，水印长宽
