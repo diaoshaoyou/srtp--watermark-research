@@ -145,7 +145,7 @@ def crop_watermark(gradx, grady, threshold=0.4, boundary_size=2):#裁剪水印
 	@param: threshold - gives the threshold param
 	@param: boundary_size - boundary around cropped image  #剪下的watermark四周有2像素的边框
 	"""
-	W_mod = np.sqrt(np.square(gradx) + np.square(grady))
+	W_mod = np.sqrt(np.square(gradx) + np.square(grady))#梯度是变化最快的地方，W_mod变化最快的方向
 	W_mod = PlotImage(W_mod)
 	W_gray = image_threshold(np.average(W_mod, axis=2), threshold=threshold)# W转二值图
 	x, y = np.where(W_gray == 1)# where(condition),输出:满足条件的xy坐标。此处认为水印和图像交界像素为白色=1，xy为所有白色像素位置

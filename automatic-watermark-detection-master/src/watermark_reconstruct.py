@@ -131,7 +131,7 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
     # for all images, calculate alpha
     for idx in xrange(num_images):
         imgcopy = thr
-        alph = closed_form_matte(J[idx], imgcopy)
+        alph = closed_form_matte(J[idx], imgcopy)#imgcopy是前面裁剪的"标准"水印图，三通道二值图
         alpha[idx] = alph
 
     alpha = np.median(alpha, axis=0)#计算每行中位数（相当于计算所有图alpha的中位数），转变成二维矩阵
@@ -139,7 +139,7 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
 
 def estimate_blend_factor(J, W_m, alph, threshold=0.01*255):
     K, m, n, p = J.shape
-    Jm = (J - W_m)#水印大小的原图-估计出的水印图
+    Jm = (J - W_m)#水印大小的有水印原图-估计出的水印图=c*alpha_n*E[I_k]
     gx_jm = np.zeros(J.shape)
     gy_jm = np.zeros(J.shape)
 
@@ -149,7 +149,7 @@ def estimate_blend_factor(J, W_m, alph, threshold=0.01*255):
 
     Jm_grad = np.sqrt(gx_jm**2 + gy_jm**2)#梯度
 
-    est_Ik = alph*np.median(J, axis=0)#a_n*所有水印图中位数
+    est_Ik = alph*np.median(J, axis=0)#a_n*所有水印图中位数,据论文，est_Ik=alpha_n*E[I_k]
     gx_estIk = cv2.Sobel(est_Ik, cv2.CV_64F, 1, 0, 3)
     gy_estIk = cv2.Sobel(est_Ik, cv2.CV_64F, 0, 1, 3)
     estIk_grad = np.sqrt(gx_estIk**2 + gy_estIk**2)

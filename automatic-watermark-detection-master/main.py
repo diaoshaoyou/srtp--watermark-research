@@ -27,10 +27,10 @@ J, img_paths = get_cropped_images('images/fotolia_processed', num_images, start,
 idx = [389, 144, 147, 468, 423, 92, 3, 354, 196, 53, 470, 445, 314, 349, 105, 366, 56, 168, 351, 15, 465, 368, 90, 96, 202, 54, 295, 137, 17, 79, 214, 413, 454, 305, 187, 4, 458, 330, 290, 73, 220, 118, 125, 180, 247, 243, 257, 194, 117, 320, 104, 252, 87, 95, 228, 324, 271, 398, 334, 148, 425, 190, 78, 151, 34, 310, 122, 376, 102, 260]
 idx = idx[:25]
 # Wm = (255*PlotImage(W_m))
-Wm = W_m - W_m.min() #使W_m的最小值=0
+Wm = W_m - W_m.min() #使W_m的最小值=0，为什么？？
 #matrix.min()找到矩阵最小值;matrix.min(0)选出每个列中最小的组成一个数组;matrix.min(1)选出每个行中最小的组成一个数组
 
-# get threshold of W_m for alpha matte estimate不透明度
+# a_n=0或1,相当于标识了水印的区域。c表示不透明度，每张图相同
 alph_est = estimate_normalized_alpha(J, Wm)#估计标准化了的alpha matte(又叫a_n)，也就是求了所有图alpha的中位数，是个二维矩阵
 alph = np.stack([alph_est, alph_est, alph_est], axis=2)#shape=(m,n,3), m,n是水印大小
 #np.stack(array, axis) array是要堆叠的矩阵，axis是堆叠要沿着的维度。对于axis=1，就是横着切开，对应行横着堆;对于axis=2，就是横着切开，对应行竖着堆;对于axis=0，就是不切开，两个堆一起。 eg.假设A=([1,2,3],[1,2,3],[1,2,3])  B=([4,5,6],[4,5,6],[4,5,6]), 则np.stack((A,B),aixs=2)为
@@ -48,12 +48,11 @@ alpha = alph.copy()
 for i in xrange(3):
 	alpha[:,:,i] = C[i]*alpha[:,:,i]#alpha=c*a_n
 
-Wm = Wm + alpha*est_Ik
+Wm = Wm + alpha*est_Ik#据论文，Wm=c*a_n*W −c*a_n*E[Ik],所以求得Wm=c*a_n*W,所以下面要除以c
 
 W = Wm.copy()
 for i in xrange(3):
-	W[:,:,i]/=C[i]
-
+	W[:,:,i]/=C[i]#此处程序中的W=a_n*无水印原图W(论文中的)
 Jt = J[:25]
 # now we have the values of alpha, Wm, J
 # Solve for all images
