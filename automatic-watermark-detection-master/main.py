@@ -10,7 +10,7 @@ gx, gy, gxlist, gylist = estimate_watermark('images/fotolia_processed')#gx、gy�
 
 # est = poisson_reconstruct(gx, gy, np.zeros(gx.shape)[:,:,0])
 cropped_gx, cropped_gy = crop_watermark(gx, gy)#裁剪出极其粗糙的水印，cropped_gx、cropped_gy是水印(包括边框)所在的区域范围
-W_m = poisson_reconstruct(cropped_gx, cropped_gy)#泊松重建，对裁剪后的水印进行sobel边缘检测
+W_m = poisson_reconstruct(cropped_gx, cropped_gy)#泊松重建，对裁剪后的水印进行拉普拉斯边缘检测
 
 # random photo
 img = cv2.imread('images/fotolia_processed/fotolia_137840645.jpg')
@@ -27,7 +27,8 @@ J, img_paths = get_cropped_images('images/fotolia_processed', num_images, start,
 idx = [389, 144, 147, 468, 423, 92, 3, 354, 196, 53, 470, 445, 314, 349, 105, 366, 56, 168, 351, 15, 465, 368, 90, 96, 202, 54, 295, 137, 17, 79, 214, 413, 454, 305, 187, 4, 458, 330, 290, 73, 220, 118, 125, 180, 247, 243, 257, 194, 117, 320, 104, 252, 87, 95, 228, 324, 271, 398, 334, 148, 425, 190, 78, 151, 34, 310, 122, 376, 102, 260]
 idx = idx[:25]
 # Wm = (255*PlotImage(W_m))
-Wm = W_m - W_m.min()
+Wm = W_m - W_m.min() #使W_m的最小值=0
+#matrix.min()找到矩阵最小值;matrix.min(0)选出每个列中最小的组成一个数组;matrix.min(1)选出每个行中最小的组成一个数组
 
 # get threshold of W_m for alpha matte estimate不透明度
 alph_est = estimate_normalized_alpha(J, Wm)#估计标准化了的alpha matte(又叫a_n)，也就是求了所有图alpha的中位数，是个二维矩阵

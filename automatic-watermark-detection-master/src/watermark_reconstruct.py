@@ -124,7 +124,7 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
     thr = np.stack([thr, thr, thr], axis=2)#相当于把原thr变成了三通道，但三通道像素颜色一样(黑/白)
 
     num, m, n, p = J.shape
-    alpha = np.zeros((num_images, m, n))#有点特殊的三维矩阵，一列x深度那个平面的二维矩阵是一张图的alpha
+    alpha = np.zeros((num_images, m, n))#有点特殊的三维矩阵，一列*深度那个平面的二维矩阵是一张图的alpha
     iterpatch = 900
 
     print("Estimating normalized alpha using %d images."%(num_images))
@@ -139,7 +139,7 @@ def estimate_normalized_alpha(J, W_m, num_images=30, threshold=170, invert=False
 
 def estimate_blend_factor(J, W_m, alph, threshold=0.01*255):
     K, m, n, p = J.shape
-    Jm = (J - W_m)
+    Jm = (J - W_m)#水印大小的原图-估计出的水印图
     gx_jm = np.zeros(J.shape)
     gy_jm = np.zeros(J.shape)
 

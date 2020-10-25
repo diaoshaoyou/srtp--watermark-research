@@ -1,3 +1,4 @@
+#作用：计算a_n
 #closed_form_matte函数在watermark_reconstruct中被调用，computeLaplacian在closed_form_matte中被调用
 from __future__ import division
 
@@ -57,6 +58,7 @@ def closed_form_matte(img, scribbled_img, mylambda=100):
     sD_s = scipy.sparse.diags(D_s)#scipy.sparse.diags(diagonals, offsets=0, shape=None, format=None, dtype=None)从对角线构造一个稀疏矩阵
     # print("Solving for alpha")
     x = scipy.sparse.linalg.spsolve(L + mylambda*sD_s, mylambda*b_s)#scipy.sparse.linalg.spsolve(A, b, permc_spec=None, use_umfpack=True)求解Ax=b中的x
-
-    alpha = np.minimum(np.maximum(x.reshape(h, w), 0), 1)
+    #x是w*h大小的,???
+    alpha = np.minimum(np.maximum(x.reshape(h, w), 0), 1)#minimum(matrix,standard),选取matrix当中<=standard的数，若无则赋standard。eg. a=[[1,2],[3,4]],minimum(a,1)的结果为[[1,1],[1,1]]    minimum(a,3)的结果为[[1,2],[3,3]]  
+    #maximum(x.reshape(h,w),0)是为了消除负数，minimum(…,1)使所有数<=1
     return alpha
