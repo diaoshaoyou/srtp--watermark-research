@@ -47,7 +47,7 @@ def computeLaplacian(img, eps=10**(-7), win_rad=1):
 
 def closed_form_matte(img, scribbled_img, mylambda=100):#scibbled_img:三通道二值图
     h, w,c  = img.shape
-    consts_map = (np.sum(abs(img - scribbled_img), axis=-1)>0.001).astype(np.float64)
+    consts_map = (np.sum(abs(img - scribbled_img), axis=-1)>0.001).astype(np.float64)#consts_map:水印和非水印区像素=1，不确定区=0
     #scribbled_img = rgb2gray(scribbled_img)
 
     consts_vals = scribbled_img[:,:,0]*consts_map
