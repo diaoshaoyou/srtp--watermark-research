@@ -8,9 +8,15 @@
 
 ## 近期任务
 
-- 学习GAN，Conditional GAN，Inpainting相关知识
-- 跑通基础教程的例子：https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
-- 阅读论文《Towards Photo-Realistic VisibleWatermark Removal with Conditional Generative Adversarial Networks》并做笔记
+- **学习GAN，Conditional GAN，Inpainting相关知识**
+  - 论文《Generative Adversarial Nets》
+  - 论文《Conditional Generative Adversarial Nets》
+  - 文件路径：“后期文件/论文/”
+- **跑通基础教程的例子**
+  - 网页链接：https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
+  - 也可以直接看ipynb文件：“后期文件/dcgan_faces_tutorial.ipynb”
+- **阅读论文《Towards Photo-Realistic VisibleWatermark Removal with Conditional Generative Adversarial Networks》并做笔记**
+  - 文件路径：“后期文件/论文/【复现目标】GAN去水印论文.pdf”
 
 
 
